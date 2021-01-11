@@ -1,0 +1,70 @@
+Задание 2
+
+Если дана таблица "employees": last_name, department_id, salary  и нужно проверить уникальность по этим всем трем полям, то
+
+По одной повторяющейся строке:
+
+SELECT
+    last_name, department_id, salary
+FROM
+    employees
+GROUP BY
+    last_name, department_id, salary
+HAVING 
+    COUNT(*) > 1
+	
+Список всех повторяющихся строк:
+	
+	SELECT
+    y.last_name,y.department_id,y.salary
+    FROM employees y
+        INNER JOIN (SELECT
+                        last_name,department_id, salary, COUNT(*) AS CountOf
+                        FROM employees
+                        GROUP BY last_name, department_id, salary
+                        HAVING COUNT(*)>1
+                    ) dt ON y.last_name=dt.last_name AND y.department_id=dt.department_id AND  y.salary=dt.salary
+					
+Удалить дубликаты можно к примеру так:
+					
+DELETE FROM employees 
+WHERE 
+	salary IN (
+	SELECT 
+		salary 
+	FROM (
+		SELECT 
+			salary,
+			ROW_NUMBER() OVER (
+				PARTITION BY last_name
+				ORDER BY last_name) AS row_num
+		FROM 
+			employees
+		
+	) t
+    WHERE row_num > 1
+);
+
+insert into employees (last_name, department_id, salary) values(Gets, 10, 3000)
+
+delete employees
+where salary > (
+    select min(salary)
+    from employees m
+    where m.last_name = employees.last_name and  m.department_id = employees.department_id
+)
+ Но лучше это выполнить на стороне Java, либо создать копию - преместить туда уникальніе строки в запросе, очистить базовую таблицу -и переместить туда, удалить копию(так я тоже делал, но думаю это избыточно)
+3. задание 
+
+SELECT * FROM employees
+
+Средняя зарплата по отделам: 
+SELECT employees.department_id, avg(salary) from employees join departments on employees.department_id = departments.department_id group by employees.department_id
+
+4. SELECT DEPT_ID , min(salary) AS min, max(salary) AS max from employees group by dept_id, salary having min<5000 AND max>15000
+
+5. Если выполнить sql-скрипт "DELETE FROM departments WHERE department id = 40" то сгенерируется исключение так как нарушается ссылочная целостность - dept_id - является ссылкой на значение в таблице departments;
+
+"DELETE employee_id, salary, job_id
+FROM employees WHERE dept_id = 90;" - не имеет смысла так как удалить в языке sql имеет форму "DELETE FROM table_name WHERE condition;"
+и это сгенерирует ошибку, к тому же job_id имеет значение not null что делает невозможным удаление из таблицы.
